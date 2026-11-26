@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ChatInsight · 阶段性成果加密查阅中心</title>
+  <meta name="description" content="ChatInsight 阶段性成果展示与浏览器端 AES-256-GCM 口令加密查阅下载中心。">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #0f172a;
+      --muted: #475569;
+      --subtle: #64748b;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --blue-soft: #eff6ff;
+      --green: #059669;
+      --green-soft: #ecfdf5;
+      --amber: #b45309;
+      --amber-soft: #fffbeb;
+      --line: #e2e8f0;
+      --card: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f1f5f9;
+      color: var(--ink);
+      font: 15px/1.62 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    main {
+      width: min(100%, 54rem);
+      margin: 1.5rem auto;
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+      background: #fff;
+      border-top: 4px solid var(--blue);
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, .06);
+    }
+    h1, h2, h3, h4, p, ul, ol { margin: 0; }
+    h1 { font-size: clamp(1.65rem, 4.5vw, 2.2rem); line-height: 1.2; letter-spacing: -.02em; }
+    h2 { font-size: 1.16rem; line-height: 1.35; margin-bottom: .75rem; }
+    .wechat-tip {
+      display: none;
+      margin-bottom: 1rem;
+      padding: .7rem 1rem;
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      color: #92400e;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: .16rem .62rem;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-size: .78rem;
+      font-weight: 650;
+    }
+    .pill.green { background: var(--green-soft); color: var(--green); }
+    .pill.amber { background: var(--amber-soft); color: var(--amber); }
+    .pill.gray { background: #e2e8f0; color: #334155; }
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .45rem;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: .55rem;
+    }
+    .hero-sub { margin-top: .45rem; color: var(--muted); font-size: .96rem; }
+    .lock-link {
+      margin-left: auto;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: .16rem .65rem;
+      font: inherit;
+      font-size: .76rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .lock-link:hover { border-color: #cbd5e1; color: var(--ink); }
+
+    /* 解锁盒 */
+    .lock-box {
+      margin-top: 1.35rem;
+      padding: 1.4rem 1.25rem;
+      background: var(--card);
+      border: 1px solid rgba(15, 23, 42, .08);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, .05);
+    }
+    .pass-form {
+      max-width: 26rem;
+      margin: 1rem auto 0;
+      display: grid;
+      gap: .75rem;
+    }
+    .input-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .pass-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 3rem 0 .95rem;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+      font: 600 1rem ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .04em;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .pass-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+    .eye-btn {
+      position: absolute;
+      right: .55rem;
+      border: 0;
+      background: transparent;
+      color: var(--subtle);
+      font-size: 1rem;
+      padding: .35rem .45rem;
+      cursor: pointer;
+    }
+    .remember-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .83rem;
+      color: var(--muted);
+    }
+    .remember-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      cursor: pointer;
+    }
+    .err-msg {
+      display: none;
+      padding: .55rem .8rem;
+      border-radius: 8px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      font-size: .84rem;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    /* 极速下载 / 5-Tab 卡片 */
+    .dl-box {
+      margin-top: 1.35rem;
+      padding: 1.25rem 1.15rem 1.15rem;
+      background: var(--card);
+      border: 1px solid rgba(15, 23, 42, .08);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, .05);
+      text-align: center;
+    }
+    .os-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 3px;
+      padding: 4px;
+      margin: 0 auto 1.1rem;
+      max-width: 31rem;
+      background: #f1f5f9;
+      border-radius: 11px;
+    }
+    .os-tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 600;
+      height: 36px;
+      padding: 0 .2rem;
+      border-radius: 8px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .15s, color .15s, box-shadow .15s;
+    }
+    .os-tab.active {
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, .10);
+    }
+    .os-panel { display: none; }
+    .os-panel.active { display: block; }
+    .os-meta {
+      margin-top: .7rem;
+      font-size: .81rem;
+      color: var(--subtle);
+      line-height: 1.55;
+    }
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: min(100%, 26rem);
+      height: 50px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #fff;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 650;
+      letter-spacing: .01em;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, .26);
+      transition: transform .1s, box-shadow .15s, opacity .15s;
+    }
+    .btn-primary:hover { box-shadow: 0 8px 22px rgba(37, 99, 235, .34); }
+    .btn-primary:active { transform: scale(.985); }
+    .btn-primary:disabled { opacity: .65; cursor: wait; }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .3rem;
+      padding: .38rem .78rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+    .btn-ghost:hover { background: var(--blue-soft); border-color: #93c5fd; color: var(--blue-dark); }
+    .btn-ghost.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    .progress-wrap { display: none; margin-top: .9rem; text-align: left; }
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), #06b6d4);
+      transition: width .15s linear;
+    }
+    .progress-text { margin-top: .35rem; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    /* 全部报告快捷清单 & 扫库进度条 */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .55rem;
+      text-align: left;
+    }
+    .doc-card {
+      padding: .72rem .85rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+    }
+    .doc-card strong { font-size: .88rem; color: var(--ink); }
+    .doc-card small { font-size: .77rem; color: var(--subtle); }
+    .doc-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: auto; }
+    .sweep-list { display: grid; gap: .6rem; text-align: left; }
+    .sweep-row {
+      padding: .65rem .8rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .sweep-head { display: flex; justify-content: space-between; font-size: .84rem; font-weight: 650; margin-bottom: .35rem; }
+    .sweep-sub { font-size: .78rem; color: var(--subtle); margin-top: .28rem; }
+
+    /* 首屏 4 大核心指标 */
+    .kpi-grid {
+      margin-top: 1.2rem;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .65rem;
+    }
+    .kpi {
+      padding: .85rem .65rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      text-align: center;
+    }
+    .kpi-val {
+      font-size: 1.38rem;
+      font-weight: 800;
+      color: var(--blue-dark);
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-label { margin-top: .25rem; font-size: .79rem; font-weight: 650; color: var(--ink); }
+    .kpi-sub { margin-top: .12rem; font-size: .73rem; color: var(--green); font-weight: 600; }
+
+    section { margin-top: 1.9rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+    .lead { margin-bottom: .9rem; color: var(--muted); font-size: .9rem; }
+
+    /* 表格与高亮列 */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; margin: .65rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+    th, td { padding: .66rem .72rem; text-align: right; border-bottom: 1px solid var(--line); }
+    th:first-child, td:first-child { text-align: left; }
+    tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+    thead th { background: #f8fafc; font-weight: 700; color: var(--ink); font-size: .83rem; }
+    .sub-th { display: block; font-size: .73rem; font-weight: 400; color: var(--subtle); }
+    .comparison :is(th, td):nth-child(2) { background: var(--blue-soft); color: #1e3a8a; font-weight: 800; }
+    .delta {
+      display: inline-block;
+      margin-left: .25rem;
+      padding: .08rem .38rem;
+      border-radius: 4px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .summary-box {
+      margin-top: .85rem;
+      padding: .78rem .95rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .summary-box strong { color: var(--ink); }
+
+    /* 在线报告阅读器 */
+    .reader-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .4rem;
+      margin-bottom: .85rem;
+    }
+    .md-box {
+      padding: 1rem 1.1rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      max-height: 36rem;
+      overflow-y: auto;
+    }
+    .md-body h1 { font-size: 1.25rem; margin-bottom: .55rem; }
+    .md-body h2 { font-size: 1.06rem; margin: 1.15rem 0 .45rem; padding-bottom: .25rem; border-bottom: 1px solid var(--line); }
+    .md-body h3 { font-size: .96rem; margin: .9rem 0 .35rem; }
+    .md-body p { margin: .45rem 0; color: var(--ink); font-size: .9rem; }
+    .md-body blockquote {
+      margin: .55rem 0;
+      padding: .55rem .85rem;
+      background: #fff;
+      border-left: 3.5px solid var(--blue);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+    .md-body ul, .md-body ol { margin: .45rem 0; padding-left: 1.3rem; font-size: .89rem; color: var(--muted); }
+    .md-body li + li { margin-top: .25rem; }
+    .md-body li strong { color: var(--ink); }
+    .md-body hr { border: 0; border-top: 1px solid var(--line); margin: .9rem 0; }
+    .md-body table th, .md-body table td { text-align: left; font-size: .82rem; padding: .5rem .6rem; }
+
+    /* 五大核心业务场景卡片 */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .65rem;
+    }
+    .feat {
+      padding: .8rem .95rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .feat strong { display: block; font-size: .93rem; color: var(--ink); margin-bottom: .2rem; }
+    .feat span { font-size: .84rem; color: var(--muted); }
+
+    /* 里程碑更新日志 */
+    .ver-group + .ver-group { margin-top: 1.1rem; }
+    .ver-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: .45rem;
+      font-size: .93rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .ver-time { font-size: .79rem; font-weight: 500; color: var(--subtle); font-variant-numeric: tabular-nums; }
+    .log-list { display: grid; gap: .45rem; }
+    .log-item {
+      padding: .66rem .92rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 3.5px solid var(--blue);
+      border-radius: 6px;
+      font-size: .87rem;
+      color: var(--muted);
+    }
+    .log-item strong { color: var(--ink); }
+
+    .steps { padding-left: 1.25rem; font-size: .9rem; color: var(--muted); }
+    .steps li + li { margin-top: .3rem; }
+    .steps strong { color: var(--ink); }
+    .sha-line { margin-top: .9rem; font-size: .76rem; color: var(--subtle); word-break: break-all; }
+    code { padding: .08rem .3rem; border-radius: 4px; background: #e2e8f0; color: var(--ink); font: .86em ui-monospace, SFMono-Regular, monospace; }
+
+    @media (max-width: 44rem) {
+      main { margin: 0 auto; border-radius: 0; }
+      .kpi-grid, .doc-grid, .feat-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .os-tabs { max-width: 100%; }
+      .os-tab { font-size: .74rem; }
+      th, td { padding: .5rem .38rem; font-size: .8rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="wechat-tip" class="wechat-tip">
+      💡 微信内浏览不支持保存 Excel / ZIP 附件：如需下载表格，请点击右上角「···」→「在默认浏览器中打开」（在线阅读报告不受影响）。
+    </div>
+
+    <!-- 未解锁外壳（HTML 源码仅存纯静态结构，零业务敏感数据） -->
+    <div id="lock-view">
+      <header>
+        <div class="hero-eyebrow">
+          <span class="pill">AES-256-GCM 端到端加密</span>
+          <span>离线浏览器本地解密</span>
+          <span>·</span>
+          <span class="pill green">公网零明文存储</span>
+        </div>
+        <h1>ChatInsight 阶段性成果查阅中心</h1>
+        <p class="hero-sub">请输入团队访问口令，在浏览器本地解密查看全量阶段性报告、实测进展与极速下载全套 5-Sheet 工作簿。</p>
+
+        <div class="lock-box">
+          <p style="font-weight:700;font-size:.98rem;text-align:center;">🔐 验证访问口令解锁全部成果</p>
+          <p class="os-meta" style="text-align:center;">采用 PBKDF2-SHA256 + AES-256-GCM 浏览器原生 WebCrypto 解密，口令绝不上传服务器。</p>
+          <form class="pass-form" id="unlock-form">
+            <div class="input-row">
+              <input class="pass-input" id="pass-input" type="password" placeholder="请输入访问口令（如 CI-XXXXX-XXXXX）" autocomplete="current-password" required>
+              <button class="eye-btn" id="toggle-eye" type="button" aria-label="显示或隐藏口令">👁️</button>
+            </div>
+            <div class="remember-row">
+              <label><input type="checkbox" id="remember-chk" checked> 在当前设备记住口令（本地保存）</label>
+            </div>
+            <div class="err-msg" id="unlock-err"></div>
+            <button class="btn-primary" id="unlock-btn" type="submit">🔓 解锁查阅全部成果</button>
+          </form>
+        </div>
+      </header>
+    </div>
+
+    <!-- 解锁后展示区（全部内容由加密 JSON 解密后动态注入） -->
+    <div id="app-view" style="display:none;">
+      <header>
+        <div class="hero-eyebrow">
+          <span class="pill" id="phase-pill">阶段性成果已解锁</span>
+          <span id="meta-scope">本地端到端解密完成</span>
+          <span>·</span>
+          <span id="date-pill">-</span>
+          <button type="button" class="lock-link" id="relock-btn">🔒 锁定并清除口令</button>
+        </div>
+        <h1>ChatInsight 阶段性成果中心</h1>
+        <p class="hero-sub" id="hero-sub-text">覆盖家校智能应答、学生 360° 动态学情、服务风控质检、教研洞察与校内跨部门协同五大核心业务场景。</p>
+
+        <div class="dl-box">
+          <div class="os-tabs" role="tablist" aria-label="成果分类切换">
+            <button type="button" class="os-tab active" data-tab="all" role="tab">全套总包</button>
+            <button type="button" class="os-tab" data-tab="collab" role="tab">跨部门协同</button>
+            <button type="button" class="os-tab" data-tab="frontline" role="tab">一线实战</button>
+            <button type="button" class="os-tab" data-tab="docs" role="tab">全部报告</button>
+            <button type="button" class="os-tab" data-tab="sweep" role="tab">扫库进展</button>
+          </div>
+
+          <div class="os-panel active" id="panel-all">
+            <button type="button" class="btn-primary" id="dl-all-btn">⚡ 一键解密下载全套交付总包 (.zip)</button>
+            <p class="os-meta" id="meta-all">-</p>
+          </div>
+
+          <div class="os-panel" id="panel-collab">
+            <button type="button" class="btn-primary" id="dl-collab-btn">📊 下载跨部门沟通 5-Sheet 管理工作簿 (.xlsx)</button>
+            <p class="os-meta" id="meta-collab">-</p>
+            <div style="margin-top:.6rem;"><button type="button" class="btn-ghost" data-read-doc="collab_md">📖 在线阅读《校内跨部门沟通效能诊断报告》</button></div>
+          </div>
+
+          <div class="os-panel" id="panel-frontline">
+            <button type="button" class="btn-primary" id="dl-frontline-btn">📘 下载一线促单与提分 5-Sheet 作战表 (.xlsx)</button>
+            <p class="os-meta" id="meta-frontline">-</p>
+            <div style="margin-top:.6rem;"><button type="button" class="btn-ghost" data-read-doc="handbook_md">📖 在线阅读《M端促单 × P端提分一线手册》</button></div>
+          </div>
+
+          <div class="os-panel" id="panel-docs">
+            <div class="doc-grid" id="doc-grid"></div>
+          </div>
+
+          <div class="os-panel" id="panel-sweep">
+            <div class="sweep-list" id="sweep-list"></div>
+          </div>
+
+          <div class="progress-wrap" id="progress-wrap">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+            <div class="progress-text" id="progress-text">准备流式解密下载…</div>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpi-grid" aria-label="核心实测指标"></div>
+      </header>
+
+      <section id="reader-section" aria-labelledby="reader-title">
+        <h2 id="reader-title">📖 核心报告在线阅读</h2>
+        <div class="reader-bar" id="reader-tabs"></div>
+        <div class="md-box"><div class="md-body" id="md-body"></div></div>
+      </section>
+
+      <section aria-labelledby="collab-table-title">
+        <h2 id="collab-table-title">🤝 校内跨部门配合与回复速度体检</h2>
+        <p class="lead">将原本分散在招生端与教学端各自视角下的同事内部沟通合并还原，客观度量各部门衔接效率与返工卡点：</p>
+        <div class="table-wrap">
+          <table class="comparison">
+            <thead>
+              <tr>
+                <th>协作部门组合</th>
+                <th>完整沟通事项<span class="sub-th">双方有回应占比</span></th>
+                <th>通常回复时长<span class="sub-th">工作时段 · 九成回复</span></th>
+                <th>卡点 / 夜间占比</th>
+              </tr>
+            </thead>
+            <tbody id="collab-tbody"></tbody>
+          </table>
+        </div>
+        <div class="summary-box" id="collab-summary-box">-</div>
+
+        <details style="margin-top:.85rem;">
+          <summary style="cursor:pointer;color:var(--blue-dark);font-weight:600;font-size:.9rem;padding:.35rem 0;">展开 11 大专项成果与扫库清单</summary>
+          <div class="table-wrap" style="margin-top:.6rem;">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>专项名称</th>
+                  <th>覆盖范围与引擎</th>
+                  <th>最新成果摘要</th>
+                </tr>
+              </thead>
+              <tbody id="skills-tbody"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+
+      <section aria-labelledby="goals-title">
+        <h2 id="goals-title">🌟 五大核心业务场景落地全景</h2>
+        <div class="feat-grid" id="goals-grid"></div>
+      </section>
+
+      <section aria-labelledby="milestones-title">
+        <h2 id="milestones-title">✨ 阶段性里程碑推进日志</h2>
+        <div id="milestones-list"></div>
+      </section>
+
+      <section aria-labelledby="verify-title">
+        <h2 id="verify-title">🔐 交付安全性与完整性校验</h2>
+        <ol class="steps">
+          <li><strong>端到端本地解密</strong>：本页面所有报告内容与工作簿在 GitHub Pages 仅保存 <code>AES-256-GCM</code> 密文，全部解密均在您设备浏览器本地实时完成。</li>
+          <li><strong>零裸手机号合规防线</strong>：所有导出文档与表册发布前均经过 11 位明文手机号扫描校验（实测 <strong>0 处泄露</strong>）。</li>
+          <li><strong>双通道备份获取</strong>：手机远程也可通过本机 <code>~/herdr-files/</code> 目录极速拉取相同成果包。</li>
+        </ol>
+        <p class="sha-line"><span id="sha-label">全套总包 ZIP</span> 明文 SHA-256：<code id="file-sha">-</code></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      if (/MicroMessenger/i.test(navigator.userAgent || '')) {
+        document.getElementById('wechat-tip').style.display = 'block';
+      }
+
+      const STORAGE_KEY = 'ci_report_pass_v1';
+      const lockView = document.getElementById('lock-view');
+      const appView = document.getElementById('app-view');
+      const unlockForm = document.getElementById('unlock-form');
+      const passInput = document.getElementById('pass-input');
+      const toggleEye = document.getElementById('toggle-eye');
+      const rememberChk = document.getElementById('remember-chk');
+      const unlockBtn = document.getElementById('unlock-btn');
+      const unlockErr = document.getElementById('unlock-err');
+      const progressWrap = document.getElementById('progress-wrap');
+      const progressFill = document.getElementById('progress-fill');
+      const progressText = document.getElementById('progress-text');
+
+      let activePasscode = '';
+      let payload = null;
+      let activeDocId = 'exec_md';
+
+      toggleEye.addEventListener('click', () => {
+        const isPwd = passInput.type === 'password';
+        passInput.type = isPwd ? 'text' : 'password';
+        toggleEye.textContent = isPwd ? '🙈' : '👁️';
+      });
+
+      function showUnlockError(msg) {
+        unlockErr.textContent = msg;
+        unlockErr.style.display = 'block';
+      }
+
+      function clearUnlockError() {
+        unlockErr.style.display = 'none';
+        unlockErr.textContent = '';
+      }
+
+      function escHtml(str) {
+        return String(str == null ? '' : str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function renderInlineMd(raw) {
+        let s = escHtml(raw);
+        s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+        s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        return s;
+      }
+
+      function renderMarkdownSafe(mdText) {
+        const lines = String(mdText || '').replace(/\r\n/g, '\n').split('\n');
+        const out = [];
+        let i = 0;
+        while (i < lines.length) {
+          const line = lines[i];
+          const trimmed = line.trim();
+          if (!trimmed) { i++; continue; }
+          if (/^---+$/.test(trimmed)) { out.push('<hr>'); i++; continue; }
+          const hMatch = trimmed.match(/^(#{1,4})\s+(.*)$/);
+          if (hMatch) {
+            const lvl = Math.min(4, hMatch[1].length);
+            out.push(`<h${lvl}>${renderInlineMd(hMatch[2])}</h${lvl}>`);
+            i++;
+            continue;
+          }
+          if (trimmed.startsWith('>')) {
+            const bq = [];
+            while (i < lines.length && lines[i].trim().startsWith('>')) {
+              bq.push(renderInlineMd(lines[i].trim().replace(/^>\s?/, '')));
+              i++;
+            }
+            out.push(`<blockquote>${bq.join('<br>')}</blockquote>`);
+            continue;
+          }
+          if (trimmed.startsWith('|') && i + 1 < lines.length && /^\|[\s:|-]+\|/.test(lines[i + 1].trim())) {
+            const parseRow = row => row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+            const headers = parseRow(lines[i]);
+            i += 2;
+            const rows = [];
+            while (i < lines.length && lines[i].trim().startsWith('|')) {
+              rows.push(parseRow(lines[i]));
+              i++;
+            }
+            out.push(
+              '<div class="table-wrap"><table><thead><tr>' +
+              headers.map(h => `<th>${renderInlineMd(h)}</th>`).join('') +
+              '</tr></thead><tbody>' +
+              rows.map(r => '<tr>' + headers.map((_, idx) => `<td>${renderInlineMd(r[idx] || '')}</td>`).join('') + '</tr>').join('') +
+              '</tbody></table></div>'
+            );
+            continue;
+          }
+          if (/^[-*]\s+/.test(trimmed)) {
+            const items = [];
+            while (i < lines.length && (/^[-*]\s+/.test(lines[i].trim()) || (/^\s{2,}[-*]?\s*\S/.test(lines[i]) && items.length))) {
+              const cur = lines[i].trim();
+              if (/^[-*]\s+/.test(cur)) items.push(renderInlineMd(cur.replace(/^[-*]\s+/, '')));
+              else items[items.length - 1] += '<br>' + renderInlineMd(cur.replace(/^-\s+/, ''));
+              i++;
+            }
+            out.push('<ul>' + items.map(x => `<li>${x}</li>`).join('') + '</ul>');
+            continue;
+          }
+          if (/^\d+\.\s+/.test(trimmed)) {
+            const items = [];
+            while (i < lines.length && (/^\d+\.\s+/.test(lines[i].trim()) || (/^\s{2,}-\s+/.test(lines[i]) && items.length))) {
+              const cur = lines[i].trim();
+              if (/^\d+\.\s+/.test(cur)) items.push(renderInlineMd(cur.replace(/^\d+\.\s+/, '')));
+              else items[items.length - 1] += '<br>' + renderInlineMd(cur.replace(/^-\s+/, ''));
+              i++;
+            }
+            out.push('<ol>' + items.map(x => `<li>${x}</li>`).join('') + '</ol>');
+            continue;
+          }
+          out.push(`<p>${renderInlineMd(trimmed)}</p>`);
+          i++;
+        }
+        return out.join('');
+      }
+
+      async function deriveAesKey(passcode, salt, iterations) {
+        if (!window.crypto || !window.crypto.subtle) {
+          throw new Error('当前环境不支持 WebCrypto（请使用 HTTPS 访问或升级现代浏览器）');
+        }
+        const baseKey = await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder().encode(passcode),
+          { name: 'PBKDF2' },
+          false,
+          ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+          { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+          baseKey,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['decrypt']
+        );
+      }
+
+      async function decryptCI01(arrayBuffer, passcode) {
+        const bytes = new Uint8Array(arrayBuffer);
+        if (bytes.byteLength < 36) throw new Error('密文数据包异常');
+        if (bytes[0] !== 0x43 || bytes[1] !== 0x49 || bytes[2] !== 0x30 || bytes[3] !== 0x31) {
+          throw new Error('无法识别的密文格式');
+        }
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const iterations = view.getUint32(4, false);
+        const salt = bytes.slice(8, 24);
+        const iv = bytes.slice(24, 36);
+        const body = bytes.slice(36);
+        const aad = bytes.slice(0, 4);
+        const key = await deriveAesKey(passcode, salt, iterations);
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, body);
+      }
+
+      async function sha256Hex(buffer) {
+        const digest = await crypto.subtle.digest('SHA-256', buffer);
+        return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      function saveBlob(bufOrBytes, filename, mimeType) {
+        const blob = new Blob([bufOrBytes], { type: mimeType || 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }
+
+      function updateShaFooter(label, sha) {
+        document.getElementById('sha-label').textContent = label || '当前文件';
+        document.getElementById('file-sha').textContent = sha || '-';
+      }
+
+      async function downloadEncryptedFile(fileId, triggerBtn) {
+        if (!payload) return;
+        const meta = (payload.files && payload.files[fileId]) || null;
+        if (!meta || !meta.enc_path) {
+          const doc = (payload.reports || []).find(r => r.id === fileId);
+          if (doc) {
+            const rawBytes = new TextEncoder().encode(doc.content || '');
+            const sha = await sha256Hex(rawBytes.buffer);
+            updateShaFooter(doc.title || doc.filename, sha);
+            saveBlob(rawBytes, doc.filename || (fileId + '.md'), 'text/markdown; charset=utf-8');
+          }
+          return;
+        }
+        updateShaFooter(meta.title || meta.filename, meta.plain_sha256);
+
+        const origText = triggerBtn ? triggerBtn.textContent : '';
+        if (triggerBtn) triggerBtn.disabled = true;
+        progressWrap.style.display = 'block';
+        progressFill.style.width = '0%';
+        progressText.textContent = '正在高速拉取加密交付包 ' + meta.filename + '…';
+
+        try {
+          const url = meta.enc_path + '?v=' + (meta.enc_sha256 || meta.plain_sha256 || '').slice(0, 12);
+          const resp = await fetch(url, { cache: 'no-store' });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const total = Number(resp.headers.get('content-length') || meta.enc_bytes || 1);
+          const t0 = performance.now();
+          let encBuf;
+          if (resp.body && resp.body.getReader) {
+            const reader = resp.body.getReader();
+            const chunks = [];
+            let doneBytes = 0;
+            while (true) {
+              const step = await reader.read();
+              if (step.done) break;
+              chunks.push(step.value);
+              doneBytes += step.value.byteLength;
+              const pct = Math.min(100, (doneBytes * 100) / Math.max(1, total));
+              const sec = Math.max(0.08, (performance.now() - t0) / 1000);
+              const speed = (doneBytes / 1048576) / sec;
+              progressFill.style.width = pct.toFixed(1) + '%';
+              progressText.textContent = `高速传输 ${(doneBytes / 1048576).toFixed(2)} / ${(total / 1048576).toFixed(2)} MiB (${pct.toFixed(0)}%) · ${speed.toFixed(2)} MiB/s`;
+            }
+            const merged = new Uint8Array(doneBytes);
+            let off = 0;
+            for (const ch of chunks) { merged.set(ch, off); off += ch.byteLength; }
+            encBuf = merged.buffer;
+          } else {
+            encBuf = await resp.arrayBuffer();
+            progressFill.style.width = '100%';
+          }
+
+          progressText.textContent = '正在浏览器本地 AES-256-GCM 解密与 SHA-256 校验…';
+          const plainBuf = await decryptCI01(encBuf, activePasscode);
+          const actualSha = await sha256Hex(plainBuf);
+          if (meta.plain_sha256 && actualSha !== meta.plain_sha256) {
+            throw new Error('文件明文 SHA-256 校验不一致');
+          }
+          progressFill.style.width = '100%';
+          progressText.textContent = `✅ 解密校验通过，已保存 ${meta.filename}`;
+          saveBlob(plainBuf, meta.filename, meta.mime_type);
+          if (triggerBtn) {
+            triggerBtn.textContent = '✅ 已保存 · 点击可重下';
+            setTimeout(() => { triggerBtn.textContent = origText; }, 3000);
+          }
+        } catch (err) {
+          progressText.textContent = '⚠️ 下载或解密失败：' + (err.message || err);
+          if (triggerBtn) triggerBtn.textContent = origText;
+        } finally {
+          if (triggerBtn) triggerBtn.disabled = false;
+        }
+      }
+
+      function renderPayload(data) {
+        payload = data;
+        document.getElementById('phase-pill').textContent = data.phase_badge || '阶段性成果';
+        document.getElementById('meta-scope').textContent = data.scope_text || '';
+        document.getElementById('date-pill').textContent = data.generated_at || '-';
+
+        const files = data.files || {};
+        const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(2) + ' MiB' : (b / 1024).toFixed(1) + ' KB';
+
+        if (files.all_zip) {
+          document.getElementById('meta-all').textContent = `${files.all_zip.filename} · ${fmtSize(files.all_zip.plain_bytes)} · 内含全部 25 份脱敏报告/工作簿与明细表`;
+          updateShaFooter(files.all_zip.title, files.all_zip.plain_sha256);
+        }
+        if (files.collab_xlsx) {
+          document.getElementById('meta-collab').textContent = `${files.collab_xlsx.filename} · ${fmtSize(files.collab_xlsx.plain_bytes)} · 含跨部门响应速度、十大办公场景、卡点 Top200 与时段热力`;
+        }
+        if (files.frontline_xlsx) {
+          document.getElementById('meta-frontline').textContent = `${files.frontline_xlsx.filename} · ${fmtSize(files.frontline_xlsx.plain_bytes)} · 含招生待跟进、提分实证标杆、教学服务缺口整改与指导库`;
+        }
+
+        // 4 KPI 卡
+        document.getElementById('kpi-grid').innerHTML = (data.kpis || []).map(k => `
+          <div class="kpi">
+            <div class="kpi-val">${escHtml(k.value)}</div>
+            <div class="kpi-label">${escHtml(k.label)}</div>
+            <div class="kpi-sub">${escHtml(k.sub)}</div>
+          </div>
+        `).join('');
+
+        // 全部报告卡片
+        const docGrid = document.getElementById('doc-grid');
+        docGrid.innerHTML = (data.reports || []).map(r => `
+          <div class="doc-card">
+            <strong>${escHtml(r.title)}</strong>
+            <small>${escHtml(r.subtitle || '')}</small>
+            <div class="doc-actions">
+              <button type="button" class="btn-ghost" data-read-doc="${escHtml(r.id)}">📖 在线阅读</button>
+              <button type="button" class="btn-ghost" data-dl-file="${escHtml(r.id)}">⬇️ 下载</button>
+            </div>
+          </div>
+        `).join('');
+
+        // 扫库进度条
+        const sweepList = document.getElementById('sweep-list');
+        sweepList.innerHTML = (data.sweep_stages || []).map(s => `
+          <div class="sweep-row">
+            <div class="sweep-head"><span>${escHtml(s.name)}</span><span>${escHtml(s.progress_text)} (${escHtml(s.pct)}%)</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Number(s.pct) || 0}%"></div></div>
+            <div class="sweep-sub">${escHtml(s.detail)}</div>
+          </div>
+        `).join('');
+
+        // 在线阅读器 Tab
+        const readerTabs = document.getElementById('reader-tabs');
+        readerTabs.innerHTML = (data.reports || []).map((r, idx) => `
+          <button type="button" class="btn-ghost${idx === 0 ? ' active' : ''}" data-doc-tab="${escHtml(r.id)}">${escHtml(r.short_title || r.title)}</button>
+        `).join('') + `<button type="button" class="btn-ghost" id="reader-dl-btn" style="margin-left:auto;">⬇️ 下载当前报告</button>`;
+
+        function openDoc(docId, scrollToReader) {
+          const doc = (data.reports || []).find(r => r.id === docId) || (data.reports || [])[0];
+          if (!doc) return;
+          activeDocId = doc.id;
+          Array.from(readerTabs.querySelectorAll('[data-doc-tab]')).forEach(b => {
+            b.classList.toggle('active', b.dataset.docTab === doc.id);
+          });
+          document.getElementById('md-body').innerHTML = renderMarkdownSafe(doc.content);
+          const fMeta = files[doc.id];
+          if (fMeta) updateShaFooter(doc.title, fMeta.plain_sha256);
+          if (scrollToReader) {
+            document.getElementById('reader-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+        openDoc(activeDocId, false);
+
+        appView.querySelectorAll('[data-read-doc]').forEach(btn => {
+          btn.addEventListener('click', () => openDoc(btn.dataset.readDoc, true));
+        });
+        readerTabs.querySelectorAll('[data-doc-tab]').forEach(btn => {
+          btn.addEventListener('click', () => openDoc(btn.dataset.docTab, false));
+        });
+        docGrid.querySelectorAll('[data-dl-file]').forEach(btn => {
+          btn.addEventListener('click', () => downloadEncryptedFile(btn.dataset.dlFile, btn));
+        });
+        document.getElementById('reader-dl-btn').addEventListener('click', () => {
+          const cur = (data.reports || []).find(r => r.id === activeDocId);
+          if (!cur) return;
+          if (files[cur.id]) {
+            downloadEncryptedFile(cur.id, null);
+          } else {
+            saveBlob(new TextEncoder().encode(cur.content || ''), cur.filename || 'report.md', 'text/markdown; charset=utf-8');
+          }
+        });
+
+        // 跨部门配合对比表
+        document.getElementById('collab-tbody').innerHTML = (data.collab_channels || []).map((c, idx) => `
+          <tr>
+            <th>${escHtml(c.combo)}<span class="sub-th">对接 ${escHtml(c.pairs)} 对同事 · 消息 ${escHtml(c.msgs)} 条</span></th>
+            <td><strong>${escHtml(c.items)}</strong> 件 ${idx === 0 ? '<span class="delta">主力配合</span>' : ''}<span class="sub-th">双方有回应 ${escHtml(c.bidir_pct)}%</span></td>
+            <td><strong>${escHtml(c.med_resp)}</strong><span class="sub-th">九成 ${escHtml(c.p90_resp)} 内</span></td>
+            <td>卡点 ${escHtml(c.friction_pct)}%<span class="sub-th">夜间 ${escHtml(c.off_hours_pct)}%</span></td>
+          </tr>
+        `).join('');
+        document.getElementById('collab-summary-box').innerHTML = renderInlineMd(data.collab_summary_note || '');
+
+        // 11 大专项表格
+        document.getElementById('skills-tbody').innerHTML = (data.skills_rows || []).map(r => `
+          <tr>
+            <td>${escHtml(r.idx)}</td>
+            <td><code>${escHtml(r.name)}</code></td>
+            <td>${escHtml(r.scope)}</td>
+            <td>${renderInlineMd(r.result)}</td>
+          </tr>
+        `).join('');
+
+        // 五大目标卡片
+        document.getElementById('goals-grid').innerHTML = (data.goals || []).map(g => `
+          <div class="feat">
+            <strong>${escHtml(g.title)}</strong>
+            <span>${escHtml(g.desc)}</span>
+          </div>
+        `).join('');
+
+        // 里程碑日志
+        document.getElementById('milestones-list').innerHTML = (data.milestones || []).map(m => `
+          <div class="ver-group">
+            <div class="ver-head">
+              <span class="pill ${m.latest ? '' : 'gray'}">${escHtml(m.tag)}</span>
+              <span class="ver-time">${escHtml(m.time)}</span>
+              <span>${escHtml(m.title)}</span>
+            </div>
+            <div class="log-list">
+              ${(m.items || []).map(it => `<div class="log-item">${renderInlineMd(it)}</div>`).join('')}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      async function unlockWithPasscode(passcode, persist) {
+        clearUnlockError();
+        unlockBtn.disabled = true;
+        unlockBtn.textContent = '正在拉取并校验解密…';
+        try {
+          const resp = await fetch('data/site_payload.enc?t=' + Date.now(), { cache: 'no-store' });
+          if (!resp.ok) throw new Error('无法拉取加密数据包（HTTP ' + resp.status + '）');
+          const encBuf = await resp.arrayBuffer();
+          const plainBuf = await decryptCI01(encBuf, passcode);
+          const jsonText = new TextDecoder().decode(plainBuf);
+          const data = JSON.parse(jsonText);
+          activePasscode = passcode;
+          if (persist) {
+            try { localStorage.setItem(STORAGE_KEY, passcode); } catch (_) {}
+          }
+          renderPayload(data);
+          lockView.style.display = 'none';
+          appView.style.display = 'block';
+        } catch (err) {
+          activePasscode = '';
+          const msg = err && err.name === 'OperationError'
+            ? '口令不正确或密文认证失败，请核对口令后重试。'
+            : ('解锁失败：' + (err && err.message ? err.message : '口令有误'));
+          throw new Error(msg);
+        } finally {
+          unlockBtn.disabled = false;
+          unlockBtn.textContent = '🔓 解锁查阅全部成果';
+        }
+      }
+
+      unlockForm.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const pwd = (passInput.value || '').trim();
+        if (!pwd) return showUnlockError('请输入访问口令');
+        try {
+          await unlockWithPasscode(pwd, rememberChk.checked);
+        } catch (err) {
+          showUnlockError(err.message);
+        }
+      });
+
+      document.getElementById('relock-btn').addEventListener('click', () => {
+        activePasscode = '';
+        payload = null;
+        passInput.value = '';
+        try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+        appView.style.display = 'none';
+        lockView.style.display = 'block';
+        clearUnlockError();
+      });
+
+      // 5-Tab 切换
+      const tabs = Array.from(document.querySelectorAll('.os-tab'));
+      const panels = Array.from(document.querySelectorAll('.os-panel'));
+      tabs.forEach(t => t.addEventListener('click', () => {
+        const key = t.dataset.tab;
+        tabs.forEach(x => x.classList.toggle('active', x.dataset.tab === key));
+        panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
+        if (payload && payload.files) {
+          const map = { all: 'all_zip', collab: 'collab_xlsx', frontline: 'frontline_xlsx' };
+          const fm = payload.files[map[key]];
+          if (fm) updateShaFooter(fm.title, fm.plain_sha256);
+        }
+      }));
+
+      document.getElementById('dl-all-btn').addEventListener('click', e => downloadEncryptedFile('all_zip', e.currentTarget));
+      document.getElementById('dl-collab-btn').addEventListener('click', e => downloadEncryptedFile('collab_xlsx', e.currentTarget));
+      document.getElementById('dl-frontline-btn').addEventListener('click', e => downloadEncryptedFile('frontline_xlsx', e.currentTarget));
+
+      // 自动尝试已记住的口令
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          passInput.value = saved;
+          unlockWithPasscode(saved, true).catch(() => {
+            try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+          });
+        }
+      } catch (_) {}
+    })();
+  </script>
+</body>
+</html>
